@@ -1,0 +1,39 @@
+from numpy.random import random_integers
+from sklearn import datasets
+from sklearn.utils import shuffle
+#load in the dataset
+iris = datasets.load_iris()
+#shuffle up the data set and keep the data and targets together.
+iris.data, iris.target = shuffle(iris.data, iris.target, random_state=random_integers(1,10000000) * 5)
+
+#split set up into two, training and testing
+trainingData = iris.data[0:105]
+testingData = iris.data[105:]
+
+trainingTarget = iris.target[0:105]
+testingTarget = iris.target[105:]
+
+class HardCoded:
+    """A Class for the HardCoded Classifier, for now it always returns one result."""
+    def __init__(self):
+        pass
+
+    def train(self, tt, td):
+        print("Now training the Classifier...")
+
+    def predict(self, testingData):
+        print("Making Predictions...")
+        predictions = []
+        for item in testingData:
+            predictions.append(0)
+
+        return predictions
+
+tester = HardCoded()
+tester.train(trainingTarget, trainingData)
+results = tester.predict(testingData)
+y = 1
+for index in range(len(results)):
+    if results[index] == testingTarget[index]:
+        y += 1
+print ("Accuracy of predictions:" + str(y) + " of " + str(len(testingTarget)) + " for " + str(y/len(testingTarget) * 100) + "% Accuracy")
