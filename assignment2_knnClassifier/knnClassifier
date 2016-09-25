@@ -38,7 +38,7 @@ class KnnClassifier:
         lines = csv.reader(f)
         dataset = list(lines)
         for x in range(len(dataset)):
-            for y in range(4):
+            for y in range(len(dataset[x]) - 1):  # -1 is all but last?
               dataset[x][y] = float(dataset[x][y])
             if random.random() < split:
                 trainingSet.append(dataset[x])
@@ -104,6 +104,5 @@ def main(filename):
     accuracy = tester.getAccuracy(testSet, predictions)
     print('Accuracy = ' + repr(accuracy) + '%')
 
+main('iris.csv')
 main('cars.csv')
-
-
