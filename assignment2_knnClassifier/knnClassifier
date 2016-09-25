@@ -1,0 +1,109 @@
+from numpy.random import random_integers
+from sklearn import datasets
+from sklearn.utils import shuffle
+import csv
+import random
+import math
+import operator
+# old code, going to try a different approach.
+# #load in the dataset
+# iris = datasets.load_iris()
+# #shuffle up the data set and keep the data and targets together.
+# iris.data, iris.target = shuffle(iris.data, iris.target, random_state=random_integers(1,10000000) * 5)
+#
+# #split set up into two, training and testing
+# trainingData = iris.data[0:len(iris.data)*.7]
+# testingData = iris.data[len(iris.data)*.7:]
+#
+# trainingTarget = iris.target[0:105]
+# testingTarget = iris.target[105:]
+
+
+class KnnClassifier:
+    def __init__(self):
+        pass
+
+    def train(self, tt, td):
+        print("Now training the Classifier...")
+
+    def predict(self, testingData):
+        print("Making Predictions...")
+        predictions = []
+        for item in testingData:
+            predictions.append(0)
+        return predictions
+
+    def loadDataset(self, filename, split, trainingSet=[], testSet=[]):
+        f = open(filename)
+        lines = csv.reader(f)
+        dataset = list(lines)
+        for x in range(len(dataset)):
+            for y in range(4):
+              dataset[x][y] = float(dataset[x][y])
+            if random.random() < split:
+                trainingSet.append(dataset[x])
+            else:
+                testSet.append(dataset[x])
+        f.close()
+
+    def euclideanDistance(self, instance1, instance2, length):
+        distance = 0
+        for x in range(length):
+            distance += pow((instance1[x] - instance2[x]), 2)
+        return math.sqrt(distance)
+
+    def getNeighbors(self, trainingSet, testInstance, k):
+        distances = []
+        length = len(testInstance) - 1
+        for x in range(len(trainingSet)):
+            dist = self.euclideanDistance(testInstance, trainingSet[x], length)
+            distances.append((trainingSet[x], dist))
+        distances.sort(key=operator.itemgetter(1))
+        neighbors = []
+        for x in range(k):
+            neighbors.append(distances[x][0])
+        return neighbors
+
+    def getResponse(self, neighbors):
+        classVotes = {}
+        for x in range(len(neighbors)):
+            response = neighbors[x][-1]
+            if response in classVotes:
+                classVotes[response] += 1
+            else:
+                classVotes[response] = 1
+        sortedVotes = sorted(classVotes.items(), key=operator.itemgetter(1), reverse=True)
+        return sortedVotes[0][0]
+
+    def getAccuracy(self, testSet, predictions):
+        correct = 0
+        for x in range(len(testSet)):
+            if testSet[x][-1] == predictions[x]:
+                correct += 1
+        return (correct / float(len(testSet))) * 100.0
+
+
+def main(filename):
+    # get your data ready
+    trainingSet=[]
+    testSet=[]
+    split = 0.70
+    tester = KnnClassifier()
+    tester.loadDataset(filename, split, trainingSet, testSet)
+    print('Train set: ' + repr(len(trainingSet)))
+    print('Test set: ' + repr(len(testSet)))
+
+    #create some predictions
+    predictions = []
+    k = 3
+    for i in range(len(testSet)):
+        neighbors = tester.getNeighbors(trainingSet, testSet[i], k)
+        result = tester.getResponse(neighbors)
+        predictions.append(result)
+        print('predicted: ' + repr(result) + ', actual: ' + repr(testSet[i][-1]))
+    accuracy = tester.getAccuracy(testSet, predictions)
+    print('Accuracy = ' + repr(accuracy) + '%')
+
+main('cars.csv')
+
+
