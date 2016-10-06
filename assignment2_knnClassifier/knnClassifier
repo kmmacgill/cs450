@@ -1,6 +1,4 @@
-from numpy.random import random_integers
-from sklearn import datasets
-from sklearn.utils import shuffle
+from sklearn.neighbors import KNeighborsClassifier
 import csv
 import random
 import math
