@@ -166,15 +166,30 @@ class ID3Tree:
                 tree[column[bestFeature]][value] = subtree
             return tree
 
-    def printTree(self, tree, name):
+    def printTree(self, tree, space):
         if type(tree) == dict:
-            print(name, list(tree.values())[0])
+            print(space, list(tree.keys())[0])
             for item in list(tree.values())[0].keys():
-                print(name, item)
-                self.printTree(list(tree.values())[0][item], name + "\t")
+                print(space, item)
+                self.printTree(list(tree.values())[0][item], space + "\t")
         else:
-            print
-            name, "\t->\t", tree
+            print(space, "\t->\t", tree)
+
+    def testIfWorking(self, data, target, tree):
+        if type(tree) == dict:
+            treeKeys = list(tree.keys())[0]
+            treeValues = list(tree.values())[0]
+            answerToQuestion = data[treeKeys]
+            subTreeKeys = treeValues.keys()
+            testing = subTreeKeys[0]
+            subTreeValues = subTree.values()
+            for i in range(len(subTreeKeys)):
+                if list(subTreeKeys.keys())[i] == answerToQuestion:
+                    thingy = subTreeValues[subTreeKeys[i]]
+                    pass
+            print("SDLKFJSDLKFJSD")
+
+
 
 def main(filename):
     # read in the data
@@ -190,16 +205,12 @@ def main(filename):
     for i in range(len(trainingData[0])):
         columns.append(i)
 
-    print('Train data: ' + repr(len(trainingData)) + ' objects')
-    print('Train target: ' + repr(len(trainingTarget)) + ' objects')
-    print('Test data: ' + repr(len(testData)) + ' objects')
-    print('Test target: ' + repr(len(testTarget)) + ' objects')
-
     # make it build a tree out of the TRAIN data
     tree = helper.make_tree(trainingData, trainingTarget, columns)
-    print("entire tree: ", tree)
     helper.printTree(tree, " ")
+    print("ENTIRE TREE", tree)
     # run the test data into the tree and see if i'm right.
-    # for i in range(testData):
-    #     testIfWorking(testData[i], testTarget[i], tree)
+    for i in range(len(testData)):
+        helper.testIfWorking(testData[i], testTarget[i], tree)
+
 main('votes.csv')
