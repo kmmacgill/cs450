@@ -1,6 +1,6 @@
 import csv
-import random
-
+from sklearn.utils import shuffle
+from numpy.random import random_integers
 import numpy as np
 
 
@@ -60,21 +60,38 @@ class ID3Tree:
             valueIndex += 1
         return gain
 
-    def loadDataset(self, filename, split, trainingSet=[], testSet=[]):
-        f = open(filename)
-        lines = csv.reader(f)
-        dataset = list(lines)
-        f.close()
+    if __name__ == '__main__':
+        def loadDataset(self, filename, split, trainingData, trainingTarget, testData, testTarget):
+            # open it up and read it into a file
+            f = open(filename)
+            lines = csv.reader(f)
+            dataset = list(lines)
+            f.close()
 
-        for x in range(len(dataset)):
-            for y in range(len(dataset[x]) - 1):  # -1 is all but last?
-                dataset[x][y] = float(dataset[x][y])
-            if random.random() < split:
-                trainingSet.append(dataset[x])
-            else:
-                testSet.append(dataset[x])
+            #time to randomize the data...
+            dataset = shuffle(dataset, random_state = random_integers(1,1000000))
 
-    def make_tree(self, data, classes, column):
+            #now divy up the file according to the file name
+            if filename == "votes.csv":
+                for i in range(len(dataset)):
+                    if i < split * len(dataset):
+                        trainingTarget.append(dataset[i][0])
+                        trainingData.append(dataset[i][1:])
+                    else:
+                        testTarget.append(dataset[i][0])
+                        testData.append(dataset[i][1:])
+            elif filename == "iris.csv":
+                for i in range(len(dataset)):
+                    if i < split * len(dataset):
+                        trainingTarget.append(dataset[i][:4])
+                        trainingData.append(dataset[i][4])
+                    else:
+                        testTarget.append(dataset[i][:4])
+                        testData.append(dataset[i][4])
+            elif filename == "lenses.csv":
+                pass
+
+    def make_tree(self, data, target, column):
         amtOfData = len(data)
         numOfFeatures = len(data[0])
 
@@ -85,81 +102,104 @@ class ID3Tree:
             self.column = column
 
         # List the possible classes
-        newClasses = []
-        for aclass in classes:
-            if newClasses.count(aclass) == 0:
-                newClasses.append(aclass)
+        newTargets = []
+        for aclass in target:
+            if newTargets.count(aclass) == 0:
+                newTargets.append(aclass)
 
         # Compute the default class (and total entropy)
-        frequency = np.zeros(len(newClasses))
+        frequency = np.zeros(len(newTargets))
 
         totalEntropy = 0
         index = 0
-        for aclass in newClasses:
-            frequency[index] = classes.count(aclass)
+        for aclass in newTargets:
+            frequency[index] = target.count(aclass)
             totalEntropy += self.calc_entropy(float(frequency[index]) / amtOfData)
             index += 1
-        default = classes[np.argmax(frequency)]
+        default = target[np.argmax(frequency)]
         if amtOfData == 0 or numOfFeatures == 0:
             # empty branch
             return default
-        elif classes.count(classes[0]) == amtOfData:
+        elif target.count(target[0]) == amtOfData:
             # only 1 class left
-            return classes[0]
+            return target[0]
         else:
             # choose best feature
             gain = np.zeros(numOfFeatures)
             for feature in range(numOfFeatures):
-                g = self.calc_info_gain(data,classes,feature)
+                g = self.calc_info_gain(data, target, feature)
                 gain[feature] = totalEntropy - g
             bestFeature = np.argmax(gain)
             tree = {column[bestFeature]: {}}
             values = []
 
             for dp in data:
-                if dp[feature] not in values:
+                thingy = dp[bestFeature]
+                if dp[bestFeature] not in values:
                     values.append(dp[bestFeature])
 
             for value in values:
                 newData = []
-                newClasses = []
+                newTargets = []
                 index = 0
                 for dp in data:
                     if dp[bestFeature] == value:
                         if bestFeature == 0:
                             newdatapoint = dp[1:]
-                            newNames = column[1:]
+                            newColumns = column[1:]
                         elif bestFeature == numOfFeatures:
                             newdatapoint = dp[:-1]
-                            newNames = column[:-1]
+                            newColumns = column[:-1]
                         else:
                             newdatapoint = dp[:bestFeature]
                             newdatapoint.extend(dp[bestFeature + 1:])
-                            newNames = column[:bestFeature]
-                            newNames.extend(column[bestFeature + 1:])
+                            newColumns = column[:bestFeature]
+                            newColumns.extend(column[bestFeature + 1:])
                         newData.append(newdatapoint)
-                        newClasses.append(classes[index])
+                        newTargets.append(target[index])
                     index += 1
 
-                    # Now recurse to the next level
-                    subtree = self.make_tree(newData, newClasses, newNames)
+                # Now recurse to the next level
+                subtree = self.make_tree(newData, newTargets, newColumns)
 
-                    # And on returning, add the subtree on to the tree
-                    tree[column[bestFeature]][value] = subtree
-                return tree
+                # And on returning, add the subtree on to the tree
+                tree[column[bestFeature]][value] = subtree
+            return tree
+
+    def printTree(self, tree, name):
+        if type(tree) == dict:
+            print(name, list(tree.values())[0])
+            for item in list(tree.values())[0].keys():
+                print(name, item)
+                self.printTree(list(tree.values())[0][item], name + "\t")
+        else:
+            print
+            name, "\t->\t", tree
+
 def main(filename):
     # read in the data
     helper = ID3Tree()
-    trainingset = []
-    testset = []
+    trainingData = []
+    trainingTarget = []
+    testData = []
+    testTarget = []
     split = .7
-    helper.loadDataset((filename, split, trainingset, testset))
-    print('Train set: ' + repr(len(trainingset)))
-    print('Test set: ' + repr(len(testset)))
+    helper.loadDataset(filename, split, trainingData, trainingTarget, testData, testTarget)
 
-    # split up the data into testing/training
-    # create an ID3 class thing
+    columns = []
+    for i in range(len(trainingData[0])):
+        columns.append(i)
+
+    print('Train data: ' + repr(len(trainingData)) + ' objects')
+    print('Train target: ' + repr(len(trainingTarget)) + ' objects')
+    print('Test data: ' + repr(len(testData)) + ' objects')
+    print('Test target: ' + repr(len(testTarget)) + ' objects')
+
     # make it build a tree out of the TRAIN data
+    tree = helper.make_tree(trainingData, trainingTarget, columns)
+    print("entire tree: ", tree)
+    helper.printTree(tree, " ")
     # run the test data into the tree and see if i'm right.
-
+    # for i in range(testData):
+    #     testIfWorking(testData[i], testTarget[i], tree)
 main('votes.csv')
