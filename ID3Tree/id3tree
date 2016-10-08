@@ -175,20 +175,37 @@ class ID3Tree:
         else:
             print(space, "\t->\t", tree)
 
-    def testIfWorking(self, data, target, tree):
+    def testIfWorking(self, data, tree):
         if type(tree) == dict:
-            treeKeys = list(tree.keys())[0]
+            treeKey = list(tree.keys())[0]
             treeValues = list(tree.values())[0]
-            answerToQuestion = data[treeKeys]
-            subTreeKeys = treeValues.keys()
-            testing = subTreeKeys[0]
-            subTreeValues = subTree.values()
-            for i in range(len(subTreeKeys)):
-                if list(subTreeKeys.keys())[i] == answerToQuestion:
-                    thingy = subTreeValues[subTreeKeys[i]]
-                    pass
-            print("SDLKFJSDLKFJSD")
+            answerToQuestion = data[treeKey]
+            subTreeKeys = list(treeValues.keys())
+            # pick the appropriate subTreeValues
+            counter = 0
+            for key in subTreeKeys:
+                if key == answerToQuestion:
+                    break
+                else:
+                    counter += 1
+            print("treeKey: ", treeKey)
+            # print("treeValues: ", treeValues)
+            print("AnswerToQuestion: ", answerToQuestion)
+            print("subkeys: ", subTreeKeys)
+            print("Counter: ", counter)
+            print("SUBTREE: ", list(treeValues.values())[0])
+            subTreeValues = list(treeValues.values())[counter]
+            tree = self.testIfWorking(data, subTreeValues)
 
+        return tree
+
+    def checkAccuracy(self, guesses, target):
+        correctGuesses = 0
+        for i in range(len(target)):
+            if guesses[i] == target[i]:
+                correctGuesses += 1
+        accuracy = correctGuesses / len(target) * 100
+        print("Accuracy of predictions: ", accuracy, "%")
 
 
 def main(filename):
@@ -208,9 +225,14 @@ def main(filename):
     # make it build a tree out of the TRAIN data
     tree = helper.make_tree(trainingData, trainingTarget, columns)
     helper.printTree(tree, " ")
-    print("ENTIRE TREE", tree)
     # run the test data into the tree and see if i'm right.
+    bestGuesses = []
     for i in range(len(testData)):
-        helper.testIfWorking(testData[i], testTarget[i], tree)
+        bestGuess = helper.testIfWorking(testData[i], tree)
+        bestGuesses.append(bestGuess)
+
+    print(testTarget)
+    print(bestGuesses)
+    helper.checkAccuracy(bestGuesses, testTarget)
 
 main('votes.csv')
