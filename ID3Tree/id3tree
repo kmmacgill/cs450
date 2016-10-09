@@ -61,7 +61,7 @@ class ID3Tree:
         return gain
 
     if __name__ == '__main__':
-        def loadDataset(self, filename, split, trainingData, trainingTarget, testData, testTarget):
+        def loadDataset(self, filename, splitter, trainingData, trainingTarget, testData, testTarget):
             # open it up and read it into a file
             f = open(filename)
             lines = csv.reader(f)
@@ -73,23 +73,61 @@ class ID3Tree:
 
             #now divy up the file according to the file name
             if filename == "votes.csv":
-                for i in range(len(dataset)):
-                    if i < split * len(dataset):
-                        trainingTarget.append(dataset[i][0])
-                        trainingData.append(dataset[i][1:])
+                for col in range(len(dataset)):
+                    if col < splitter * len(dataset):
+                        trainingTarget.append(dataset[col][0])
+                        trainingData.append(dataset[col][1:])
                     else:
-                        testTarget.append(dataset[i][0])
-                        testData.append(dataset[i][1:])
-            elif filename == "iris.csv":
-                for i in range(len(dataset)):
-                    if i < split * len(dataset):
-                        trainingTarget.append(dataset[i][:4])
-                        trainingData.append(dataset[i][4])
-                    else:
-                        testTarget.append(dataset[i][:4])
-                        testData.append(dataset[i][4])
+                        testTarget.append(dataset[col][0])
+                        testData.append(dataset[col][1:])
             elif filename == "lenses.csv":
-                pass
+                for col in range(len(dataset)):
+                    if col < splitter * len(dataset):
+                        dataset[col] = dataset[col][0].split()
+                        trainingTarget.append(dataset[col][5])
+                        trainingData.append(dataset[col][1:5])
+                    else:
+                        dataset[col] = dataset[col][0].split()
+                        testTarget.append(dataset[col][5])
+                        testData.append(dataset[col][1:5])
+            elif filename == "iris.csv":
+                for col in range(len(dataset)):
+                    if col < splitter * len(dataset):
+                        trainingTarget.append(dataset[col][4])
+                        trainingData.append(dataset[col][:4])
+                    else:
+                        testTarget.append(dataset[col][4])
+                        testData.append(dataset[col][:4])
+                hiValues = ['0','0','0','0']
+                medValues = ['0','0','0','0']
+                lowValues = ['0','0','0','0']
+                for row in trainingData:
+                    for col in range(len(row)):
+                        if hiValues[col] == '0' or row[col] > hiValues[col] :
+                            hiValues[col] = row[col]
+                        if lowValues[col] == '0' or row[col] < lowValues[col]:
+                            lowValues[col] = row[col]
+                for col in range(len(medValues)):
+                    medValues[col] = str((float(lowValues[col]) + float(hiValues[col])) / 2)
+                    hiValues[col] = str((float(medValues[col]) + float(hiValues[col])) / 2)
+                    lowValues[col] = str((float(lowValues[col]) + float(medValues[col])) / 2)
+                for row in range(len(trainingData)):
+                    for col in range(len(trainingData[row])):
+                        if trainingData[row][col] <= lowValues[col]:
+                            trainingData[row][col] = 0
+                        elif trainingData[row][col] <= hiValues[col]:
+                            trainingData[row][col] = 1
+                        else:
+                            trainingData[row][col] = 2
+                for row in range(len(testData)):
+                    for col in range(len(testData[row])):
+                        if testData[row][col] <= lowValues[col]:
+                            testData[row][col] = 0
+                        elif testData[row][col] <= hiValues[col]:
+                            testData[row][col] = 1
+                        else:
+                            testData[row][col] = 2
+
 
     def make_tree(self, data, target, column):
         amtOfData = len(data)
@@ -188,13 +226,10 @@ class ID3Tree:
                     break
                 else:
                     counter += 1
-            print("treeKey: ", treeKey)
-            # print("treeValues: ", treeValues)
-            print("AnswerToQuestion: ", answerToQuestion)
-            print("subkeys: ", subTreeKeys)
-            print("Counter: ", counter)
-            print("SUBTREE: ", list(treeValues.values())[0])
-            subTreeValues = list(treeValues.values())[counter]
+            try:
+                subTreeValues = list(treeValues.values())[counter]
+            except:
+                subTreeValues = list(treeValues.values())[0]
             tree = self.testIfWorking(data, subTreeValues)
 
         return tree
@@ -204,7 +239,7 @@ class ID3Tree:
         for i in range(len(target)):
             if guesses[i] == target[i]:
                 correctGuesses += 1
-        accuracy = correctGuesses / len(target) * 100
+        accuracy = int(correctGuesses / len(target) * 100)
         print("Accuracy of predictions: ", accuracy, "%")
 
 
@@ -230,9 +265,9 @@ def main(filename):
     for i in range(len(testData)):
         bestGuess = helper.testIfWorking(testData[i], tree)
         bestGuesses.append(bestGuess)
-
-    print(testTarget)
-    print(bestGuesses)
+    print("Checking Accuracy...")
     helper.checkAccuracy(bestGuesses, testTarget)
 
 main('votes.csv')
+main('lenses.csv')
+main('iris.csv')
