@@ -3,6 +3,7 @@ import csv
 from sklearn.utils import shuffle
 from numpy.random import random_integers
 from sklearn import preprocessing
+import math
 
 class DataLoader:
     def loadDataset(self, filename, splitter, trainingData, trainingTarget, testData, testTarget):
@@ -11,7 +12,6 @@ class DataLoader:
         lines = csv.reader(f)
         dataSet = list(lines)
         f.close()
-
         # time to randomize the data...
         dataSet = shuffle(dataSet, random_state=random_integers(1, 1000000))
 
@@ -41,12 +41,8 @@ class Neuron:
         totalVal = 0
         for i in range(len(inputs)):
             totalVal += (inputs[i] * self.weight[i])
-        totalVal += (self.bias * self.weight[-1]) # for bias node
-        if totalVal >= 0:
-            toReturn = 1
-        else:
-            toReturn = 0
-        return toReturn
+        totalVal += (self.bias * self.weight[-1])  # for bias node
+        return 1/(1 + math.e**totalVal)
 
 class networkOfNodes:
 
@@ -98,10 +94,6 @@ def main(filename):
 
     predictions = theNet.predict(trainingData)
     print(predictions)
-
-
-
-
 
 
 print("running Iris dataset")
