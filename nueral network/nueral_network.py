@@ -20,11 +20,11 @@ class DataLoader:
         if filename == 'iris.csv':
             for x in range(len(dataSet)):
                 if dataSet[x][-1] == 'Iris-setosa':
-                    dataSet[x][-1] = [1,0,0]
+                    dataSet[x][-1] = 0
                 elif dataSet[x][-1] == 'Iris-versicolor':
-                    dataSet[x][-1] = [0,1,0]
+                    dataSet[x][-1] = 1
                 else:
-                    dataSet[x][-1] = [0,0,1]
+                    dataSet[x][-1] = 2
 
         # now divy up the file according to the file name
         for x in range(len(dataSet)):
@@ -44,7 +44,6 @@ class Neuron:
     def __init__(self, inputNums):
         self.Weight = []
         self.error = 0.0
-        self.aj = 0.0
 
         for i in range(0, inputNums):
             randWeight = random.random()
@@ -56,75 +55,94 @@ class Neuron:
         for i in range(len(inputs)):
             totalVal += (inputs[i] * self.Weight[i])
         totalVal += (self.bias * self.Weight[-1])  # for bias node
-        self.aj =  1/(1 + math.e**totalVal)
-        return self.aj
+        return 1 / (1 + math.e ** totalVal)
 
 class networkOfNodes:
 
     def __init__(self):
         self.layers = []
 
-    def thereAndBackAgain(self, trainingTarget, trainingData, classifiedPredictions):
+    def thereAndBackAgain(self, trainingTarget, trainingData):
         for epoch in range(100):
-            # forward feed
-            if len(self.layers) != 0:
+            for row in range(len(trainingData)):
                 predictions = []
-                for row in range(len(trainingData)):
-                    data = trainingData[row]
-                    for layer in range(len(self.layers)):
-                        explodedNeurons = []
-                        for node in range(len(self.layers[layer])):
-                            neuron = self.layers[layer][node]
-                            explodedNeurons.append(neuron.neuronBoom(data))
-                        predictions.append(explodedNeurons)
-                        data = explodedNeurons
-            else:
-                predictions = []
-            #backward update errors
-            for row in range(len(trainingTarget)):
-                col = -1
-                for _ in range(len(self.layers)):
-                    for neuron in range(len(self.layers[col])):
-                        if col == -1:
-                            output = 0
-                            if trainingTarget[row] == classifiedPredictions[row]:
-                                output = 1
+                rowsData = trainingData[row]
+                for layer in range(len(self.layers)):
+                    # the feed forward bit
+                    explodedNeurons = []
+                    for node in range(len(self.layers[layer])):
+                        neuron = self.layers[layer][node]
+                        explodedNeurons.append(neuron.neuronBoom(rowsData))
+                    predictions.append(explodedNeurons)
+                    rowsData = explodedNeurons
 
-                            self.layers[col][neuron].error = self.layers[col][neuron].aj * (1 - self.layers[col][neuron].aj) * (self.layers[col][neuron].aj - output)
+            CurrentLayer = -1
+            for _ in range(len(self.layers)):
+                # Set all errors
+                nodesPerLayer = len(self.layers[CurrentLayer])
+                for indexOfNueron in range(nodesPerLayer):
+                    # Setting errors for each node in the layer
+                    if CurrentLayer == -1:
+                        # set the prediction to the highest values column number the set output to a one or zero
+                        high = 0
+                        predict = -1
+                        for col in range(len(predictions[-1])):
+                            if predictions[-1][col] > high:
+                                high = predictions[-1][col]
+                                predict = col
+                        # is the prediction right or wrong
+                        output = 0
+                        if trainingTarget[row] == predict:
+                            output = 1
 
-                        else:
-                            # Calculate hidden layer node errors
-                            errorTotal = 0.0
+                        nodeOutput = predictions[CurrentLayer][indexOfNueron]
+                        newError = nodeOutput * (1 - nodeOutput) * (nodeOutput - output)
+                        self.layers[CurrentLayer][indexOfNueron].error = newError
 
-                            for next_layer_neuron in range(len(self.layers[col + 1])):
-                                # this sums up the weight * error of all nodes in the layer to the right
-                                errorTotal += (self.layers[col + 1][next_layer_neuron].error * self.layers[col + 1][next_layer_neuron].Weight[neuron])
-                            # Calculate and set this nodes error
-                            self.layers[col][neuron].error = predictions[col][neuron] * (1 - predictions[col][neuron]) * errorTotal
-                    col -= 1
-                # forward update weights
-                col = -1
-                for _ in range(len(self.layers)):
-                    # update weights
-                    learning_rate = .1
-                    for neuron in range(len(self.layers[col])):
-                        for weight in range(len(self.layers[col][neuron].Weight)):
-                            if (col * -1) == len(self.layers):
-                                # do this if this is the first layer
-                                if weight != len(self.layers[col][neuron].Weight):
-                                    this_input = trainingData[row][weight].output
-                                else:
-                                    this_input = self.layers[col][neuron].bias
+                    else:
+                        # hidden layer
+
+                        errorSum = 0.0
+                        nextNode = len(self.layers[CurrentLayer + 1])
+                        for nextOne in range(nextNode):
+                            # this sums up the weight * error of all nodes in the layer to the right
+                            nodesError = self.layers[CurrentLayer + 1][nextOne].error
+                            nodesWeight = self.layers[CurrentLayer + 1][nextOne].Weight[nextOne]
+                            errorSum += (nodesError * nodesWeight)
+
+                        # Calculate and set this nodes error
+                        nodeOutput = predictions[CurrentLayer][indexOfNueron]
+                        newError = nodeOutput * (1 - nodeOutput) * errorSum
+                        self.layers[CurrentLayer][indexOfNueron].error = newError
+                CurrentLayer -= 1
+
+            for eachLayer in range(len(self.layers)):
+                # update weights
+                learning_rate = .1
+                for neurons in range(len(self.layers[eachLayer])):
+                    numbWeights = len(self.layers[eachLayer][neurons].Weight)
+                    for eachWeight in range(numbWeights):
+                        bias = self.layers[eachLayer][neurons].bias
+                        if eachLayer == 0:
+                            if eachWeight != (numbWeights - 1):
+                                thisInput = trainingData[eachLayer][eachWeight]
                             else:
-                                if weight < len(self.layers[col][neuron].Weight) - 1:
-                                    this_input = self.layers[col - 1][weight].aj
-                                else:
-                                    this_input = self.layers[col][neuron].bias
+                                thisInput = bias
+                        else:
+                            if eachWeight != (numbWeights - 1):
+                                thisInput = predictions[eachLayer - 1][eachWeight]
+                            else:
+                                thisInput = bias
 
-                            old_weight = self.layers[col][neuron].Weight[weight]
-                            error = self.layers[col][neuron].error
-                            new_weight = old_weight - learning_rate * error * this_input
-                            self.layers[col][neuron].Weight[weight] = new_weight
+                        oldWeight = self.layers[eachLayer][neurons].Weight[eachWeight]
+                        error = self.layers[eachLayer][neurons].error
+                        new_weight = oldWeight - learning_rate * error * thisInput
+                        self.layers[eachLayer][neurons].Weight[eachWeight] = new_weight
+
+        thisPrediction = self.payItForward(trainingData)
+        predicts = self.classifyPredictions(thisPrediction)
+        percent = getAccuracy(predicts, trainingTarget)
+        print("%i%%" % percent)
 
     def addLayer(self, howManyNeurons, howManyInputs = 0):
         if len(self.layers) != 0:
@@ -135,18 +153,15 @@ class networkOfNodes:
         self.layers.append(neurons)
 
     def payItForward(self, data):
-        if len(self.layers) != 0:
-            for layer in range(len(self.layers)):
-                prediction = []
-                for row in range(len(data)):
-                    excited_neurons = []
-                    for node in range(len(self.layers[layer])):
-                        neuron = self.layers[layer][node]
-                        excited_neurons.append(neuron.neuronBoom(data[row]))
-                    prediction.append(excited_neurons)
-                data = prediction
-        else:
+        for layer in range(len(self.layers)):
             prediction = []
+            for row in range(len(data)):
+                neuronsThatWentOff = []
+                for node in range(len(self.layers[layer])):
+                    neuron = self.layers[layer][node]
+                    neuronsThatWentOff.append(neuron.neuronBoom(data[row]))
+                prediction.append(neuronsThatWentOff)
+            data = prediction
         return prediction
 
     def classifyPredictions(self, predictions):
@@ -192,19 +207,20 @@ def main(filename):
     theNet = networkOfNodes()
 
     if filename == 'iris.csv':
-        theNet.addLayer(2, len(trainingData[0]))
+        theNet.addLayer(3, len(trainingData[0]))
         predictions = theNet.payItForward(trainingData)
-        theNet.addLayer(2)
-        predictions = theNet.payItForward(trainingData)
+        print("One layer predictions:")
+        print(predictions)
         theNet.addLayer(3)
         predictions = theNet.payItForward(trainingData)
-        print("predictions:")
+        print("Predictions of same data, 2 layers:")
         print(predictions)
         predictions = theNet.classifyPredictions(predictions)
         accuracy = int(getAccuracy(predictions, trainingTarget))
-        print("Accuracy: ", accuracy, "%")
+        print("Accuracy before back-propogation: ", accuracy, "%")
+        print(" ")
         print("Back propogating...")
-        theNet.thereAndBackAgain(trainingTarget, trainingData, predictions)
+        theNet.thereAndBackAgain(trainingTarget, trainingData)
         print("making new predictions with new weights...")
         predictions = theNet.payItForward(testData)
         predictions = theNet.classifyPredictions(predictions)
@@ -227,5 +243,5 @@ def main(filename):
 
 print("running Iris dataset")
 main('iris.csv')
-print("Running diabetes dataset")
-main('diabetes.csv')
+# print("Running diabetes dataset")
+# main('diabetes.csv')
