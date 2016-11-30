@@ -2,7 +2,6 @@ import csv
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
 from sklearn import preprocessing
-import numpy as np
 import random
 from sklearn.utils import shuffle
 
@@ -50,8 +49,8 @@ def getTrainingNTestingSets(dataSetName, dataset, trainingSet=[], testSet=[]):
         for x in range(len(dataset)):
             for y in range(len(dataset[x])):
                 dataset[x][y] = float(dataset[x][y])
-            trainingSet.append(dataset[:-1])
-            testSet.append(dataset[-1])
+            trainingSet.append(dataset[x][:-1])
+            testSet.append(dataset[x][-1])
     return trainingSet, testSet
 
 
@@ -64,20 +63,24 @@ def main():
     abatrainingData, abatrainingTarget, abatestData, abatestTarget = shuffleItUp(abaloneTrainSet, abaloneTestSet)
 
     print("k nearest neighbors:")
-    predictions = []
+    abaPredictions = []
     neigh = KNeighborsClassifier(n_neighbors=3, algorithm='ball_tree').fit(abatrainingData, abatrainingTarget)
 
     for i in range(len(abatestData)):
-        predictions.append(neigh.predict(abatestData[i]))
+        abaPredictions.append(neigh.predict(abatestData[i]))
     accuracy = 0
-    for i in range(len(predictions)):
-        if predictions[i] == abatestTarget[i]:
+    for i in range(len(abaPredictions)):
+        if abaPredictions[i] == abatestTarget[i]:
             accuracy += 1
     predictAccuracy = int(accuracy / len(abatestTarget) * 100)
     print("knn accuracy: ", predictAccuracy, "%")
 
     print("decision tree:")
+    abaPredictions.clear()
+    decTree = DecisionTreeClassifier().fit(abatrainingData, abatrainingTarget)
 
+    for i in range(len(abatestData)):
+        abaPredictions.append(decTree.predict(abatestData[i]))
     print("neural net:")
 
     print("running contraceptive Data...")
