@@ -1,6 +1,10 @@
 import csv
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neural_network import MLPClassifier
+from sklearn.ensemble import BaggingClassifier
+from sklearn.ensemble import AdaBoostClassifier
+from sklearn.ensemble import RandomForestClassifier
 from sklearn import preprocessing
 import random
 from sklearn.utils import shuffle
@@ -32,82 +36,277 @@ def normalize(trainingData, testData):
 
 def getTrainingNTestingSets(dataSetName, dataset, trainingSet=[], testSet=[]):
     if dataSetName == "abalone":
-        for x in range(len(dataset)):
+        for row in range(len(dataset)):
             entry = []
-            for y in range(len(dataset[x])):
-                if y == 0:
-                    if dataset[x][y] == "M":
+            for col in range(len(dataset[row])):
+                if col == 0:
+                    if dataset[row][col] == "M":
                         testSet.append(0)
-                    elif dataset[x][y] == "F":
+                    elif dataset[row][col] == "F":
                         testSet.append(1)
                     else:
                         testSet.append(2)
                 else:
-                    entry.append(float(dataset[x][y]))
+                    entry.append(float(dataset[row][col]))
             trainingSet.append(entry)
     else:
-        for x in range(len(dataset)):
-            for y in range(len(dataset[x])):
-                dataset[x][y] = float(dataset[x][y])
-            trainingSet.append(dataset[x][:-1])
-            testSet.append(dataset[x][-1])
+        for row in range(len(dataset)):
+            for col in range(len(dataset[row])):
+                dataset[row][col] = float(dataset[row][col])
+            trainingSet.append(dataset[row][:-1])
+            testSet.append(dataset[row][-1])
     return trainingSet, testSet
 
 
 def main():
     print("running abalone data...")
-    abaloneTestSet = []
-    abaloneTrainSet = []
-    abalone = loadCsvFile("abalone.csv")
-    abaloneTrainSet, abaloneTestSet = getTrainingNTestingSets("abalone", abalone, abaloneTrainSet, abaloneTestSet)
-    abatrainingData, abatrainingTarget, abatestData, abatestTarget = shuffleItUp(abaloneTrainSet, abaloneTestSet)
+    testSet = []
+    trainSet = []
+    dataset = loadCsvFile("abalone.csv")
+    trainSet, testSet = getTrainingNTestingSets("abalone", dataset, trainSet, testSet)
+    trainingData, trainingTarget, testData, testTarget = shuffleItUp(trainSet, testSet)
 
     print("k nearest neighbors:")
-    abaPredictions = []
-    neigh = KNeighborsClassifier(n_neighbors=3, algorithm='ball_tree').fit(abatrainingData, abatrainingTarget)
+    predictions = []
+    neigh = KNeighborsClassifier(n_neighbors=3, algorithm='ball_tree').fit(trainingData, trainingTarget)
 
-    for i in range(len(abatestData)):
-        abaPredictions.append(neigh.predict(abatestData[i]))
+    for i in range(len(testData)):
+        predictions.append(neigh.predict(testData[i]))
     accuracy = 0
-    for i in range(len(abaPredictions)):
-        if abaPredictions[i] == abatestTarget[i]:
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
             accuracy += 1
-    predictAccuracy = int(accuracy / len(abatestTarget) * 100)
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
     print("knn accuracy: ", predictAccuracy, "%")
 
     print("decision tree:")
-    abaPredictions.clear()
-    decTree = DecisionTreeClassifier().fit(abatrainingData, abatrainingTarget)
+    predictions.clear()
+    decTree = DecisionTreeClassifier(max_depth=5).fit(trainingData, trainingTarget)
 
-    for i in range(len(abatestData)):
-        abaPredictions.append(decTree.predict(abatestData[i]))
+    for i in range(len(testData)):
+        predictions.append(decTree.predict(testData[i]))
+
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("DecisionTree accuracy: ", predictAccuracy, "%")
+
     print("neural net:")
+    predictions.clear()
+    nutnet = MLPClassifier(max_iter=1000000).fit(trainingData, trainingTarget)
+    for i in range(len(testData)):
+        predictions.append(nutnet.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("Neural Net accuracy: ", predictAccuracy, "%")
 
+    print("Bagging:")
+    predictions.clear()
+    bilbo = BaggingClassifier(base_estimator=neigh).fit(trainingData, trainingTarget)
+    for i in range(len(testData)):
+        predictions.append(bilbo.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("Bagging accuracy: ", predictAccuracy, "%")
+
+    print("Boosting:")
+    predictions.clear()
+    superBooster = AdaBoostClassifier().fit(trainingData, trainingTarget)
+    for i in range(len(testData)):
+        predictions.append(superBooster.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("Boosting accuracy: ", predictAccuracy, "%")
+
+    print("Random Forests:")
+    predictions.clear()
+    ranFor = RandomForestClassifier().fit(trainingData, trainingTarget)
+    for i in range(len(testData)):
+        predictions.append(ranFor.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("Boosting accuracy: ", predictAccuracy, "%")
+
+##############################################################################
     print("running contraceptive Data...")
-    contraTestSet = []
-    contraTrainSet = []
+    testSet = []
+    trainSet = []
     contra = loadCsvFile("contraceptiveData.csv")
-    contraTrainSet, contraTestSet = getTrainingNTestingSets("contra", contra, contraTrainSet, contraTestSet)
-    conTrainingData, conTrainingTarget, conTestData, ConTestTarget = shuffleItUp(contraTrainSet, contraTestSet)
+    trainSet, testSet = getTrainingNTestingSets("contra", contra, trainSet, testSet)
+    trainingData, trainingTarget, testData, testTarget = shuffleItUp(trainSet, testSet)
 
     print("k nearest neighbors:")
+    predictions = []
+    neigh = KNeighborsClassifier(n_neighbors=3, algorithm='ball_tree').fit(trainingData, trainingTarget)
+
+    for i in range(len(testData)):
+        predictions.append(neigh.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("knn accuracy: ", predictAccuracy, "%")
 
     print("decision tree:")
+    predictions.clear()
+    decTree = DecisionTreeClassifier(max_depth=5).fit(trainingData, trainingTarget)
+
+    for i in range(len(testData)):
+        predictions.append(decTree.predict(testData[i]))
+
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("DecisionTree accuracy: ", predictAccuracy, "%")
 
     print("neural net:")
+    predictions.clear()
+    nutnet = MLPClassifier(max_iter=1000000).fit(trainingData, trainingTarget)
+    for i in range(len(testData)):
+        predictions.append(nutnet.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("Neural Net accuracy: ", predictAccuracy, "%")
 
+    print("Bagging:")
+    predictions.clear()
+    bilbo = BaggingClassifier(base_estimator=neigh).fit(trainingData, trainingTarget)
+    for i in range(len(testData)):
+        predictions.append(bilbo.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("Bagging accuracy: ", predictAccuracy, "%")
+
+    print("Boosting:")
+    predictions.clear()
+    superBooster = AdaBoostClassifier().fit(trainingData, trainingTarget)
+    for i in range(len(testData)):
+        predictions.append(superBooster.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("Boosting accuracy: ", predictAccuracy, "%")
+
+    print("Random Forests:")
+    predictions.clear()
+    ranFor = RandomForestClassifier().fit(trainingData, trainingTarget)
+    for i in range(len(testData)):
+        predictions.append(ranFor.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("Boosting accuracy: ", predictAccuracy, "%")
+
+###########################################################################
     print("running glass prediction data...")
-    glassesTestSet = []
-    glassesTrainSet = []
+    testSet = []
+    trainSet = []
     glasses = loadCsvFile("glassTypes.csv")
-    glassesTrainSet, glassesTestSet = getTrainingNTestingSets("glasses", glasses, glassesTrainSet, glassesTestSet)
-    trainingData, trainingTarget, testData, testTarget = shuffleItUp(glassesTrainSet, glassesTestSet)
+    trainSet, testSet = getTrainingNTestingSets("glasses", glasses, trainSet, testSet)
+    trainingData, trainingTarget, testData, testTarget = shuffleItUp(trainSet, testSet)
 
     print("k nearest neighbors:")
+    predictions = []
+    neigh = KNeighborsClassifier(n_neighbors=3, algorithm='ball_tree').fit(trainingData, trainingTarget)
+
+    for i in range(len(testData)):
+        predictions.append(neigh.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("knn accuracy: ", predictAccuracy, "%")
 
     print("decision tree:")
+    predictions.clear()
+    decTree = DecisionTreeClassifier(max_depth=5).fit(trainingData, trainingTarget)
+
+    for i in range(len(testData)):
+        predictions.append(decTree.predict(testData[i]))
+
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("DecisionTree accuracy: ", predictAccuracy, "%")
 
     print("neural net:")
+    predictions.clear()
+    nutnet = MLPClassifier(max_iter=1000000).fit(trainingData, trainingTarget)
+    for i in range(len(testData)):
+        predictions.append(nutnet.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("Neural Net accuracy: ", predictAccuracy, "%")
+
+    print("Bagging:")
+    predictions.clear()
+    bilbo = BaggingClassifier(base_estimator=neigh).fit(trainingData, trainingTarget)
+    for i in range(len(testData)):
+        predictions.append(bilbo.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("Bagging accuracy: ", predictAccuracy, "%")
+
+    print("Boosting:")
+    predictions.clear()
+    superBooster = AdaBoostClassifier().fit(trainingData, trainingTarget)
+    for i in range(len(testData)):
+        predictions.append(superBooster.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("Boosting accuracy: ", predictAccuracy, "%")
+
+    print("Random Forests:")
+    predictions.clear()
+    ranFor = RandomForestClassifier().fit(trainingData, trainingTarget)
+    for i in range(len(testData)):
+        predictions.append(ranFor.predict(testData[i]))
+    accuracy = 0
+    for i in range(len(predictions)):
+        if predictions[i] == testTarget[i]:
+            accuracy += 1
+    predictAccuracy = int(accuracy / len(testTarget) * 100)
+    print("Boosting accuracy: ", predictAccuracy, "%")
+
 
 main()
 
