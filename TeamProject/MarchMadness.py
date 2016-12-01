@@ -42,9 +42,23 @@ def buildTableOfWinLoss(seasonResults):
     return tableOfWinnersAndLosers
 
 def main(): #TODO: get season from user, teams too.
-    seasonResults = loadcsv("regular_season_results.csv")
+    #************************************************************************
+    # these were used to construct the csv's, can be uncommented to do so again.
+    #************************************************************************
+    #seasonResults = loadcsv("regular_season_results.csv")
+    tourneyResults = loadcsv("tourney_results.csv")
+    #tableToWrite = buildTableOfWinLoss(seasonResults)
+    anotherTableToWrite = buildTableOfWinLoss((tourneyResults))
 
-    buildTableOfWinLoss(seasonResults)
+    # This code writes the table generated above, to a csv file.
+    # The csv was created before using the UI but the content was
+    # added with this code.            "a" is for append, w is write, but overwrites csv data
+    with open("tourneyTeamTotals.csv", "a") as textFile: # change this to whatever csv file you want, after you'd added the file to the project
+        textfileWriter = csv.writer(textFile, lineterminator='\n') #without this lineterminator set, it skips a line between entries.
+        for row in anotherTableToWrite:
+            textfileWriter.writerow(row)
+
+    textFile.close()
 
 
 main()
