@@ -1,3 +1,12 @@
+import csv
+
+def loadcsv(filename):
+    f = open(filename)
+    lines = csv.reader(f)
+    dataset = list(lines)
+    f.close()
+    return dataset
+
 seasonResult = read.csv("Rstudio/MarchMadness/season S results.csv", header=TRUE)
 namesOfTeams = read.csv("Rstudio/MarchMadness/teams.csv", header=TRUE)
 # declare a table, that will hold the name of team, their wins, and their losses
