@@ -1,5 +1,6 @@
-seasonResult = read.csv("Rstudio/MarchMadness/season S results.csv", header=TRUE)
-namesOfTeams = read.csv("Rstudio/MarchMadness/teams.csv", header=TRUE)
+import csv
+seasonResult = loadcsv("season A results.csv")
+namesOfTeams =
 # declare a table, that will hold the name of team, their wins, and their losses
 tableOfWinnersAndLosers < - list()
 # for each team in the teams csv file
