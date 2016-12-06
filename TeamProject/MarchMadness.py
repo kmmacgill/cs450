@@ -53,7 +53,13 @@ class MarMite:
 
     def getTrend(self, season):
         # build the table for the seasons
-        previousSeason = chr(ord(season) - 1)
+        if season == "A":
+            previousSeason = "A"
+        elif season != "regular_season_results.csv":
+            previousSeason = chr(ord(season) - 1)
+        else:
+            season = "S"
+            previousSeason = "R"
         previousSeasonGood = self.checkSeason([self.team1, self.team2], previousSeason, True)
         # build the tables, then check each one for the data.
         season1Results = []
@@ -96,7 +102,10 @@ class MarMite:
         self.lastTeamFound[0] = 0
         self.lastTeamFound[1] = 0
         answer = True
-        csvName = "season " + season + " results.csv"
+        if season == "regular_season_results.csv":
+            csvName = "regular_season_results.csv"
+        else:
+            csvName = "season " + season + " results.csv"
         try:
             seasonTable = self.loadcsv(csvName)
         except:
@@ -116,12 +125,66 @@ class MarMite:
                 answer = False
         return answer
 
+    def tourneyPredictor(self, listOfTeams):
+        notFinished = True
+        seasonTable = []
+        accuracy = 0
+        while notFinished:
+            quit = input("press enter to continue making predictions or Type 'quit'")
+            if quit == 'quit':
+                notFinished = False
+            else:
+                prompt = True
+                while prompt:
+                    season = input("Enter a Tournament Season (A-R): ")
+                    try:
+                        seasonTable = self.loadcsv("tourney " + season + " results.csv")
+                        prompt = False
+                    except:
+                        print("Invalid Season, please try Entering a value as directed")
+                        prompt = True
+                print("Running predictions...")
+                for row in range(len(seasonTable)):
+                    self.team1 = seasonTable[row][2]
+                    self.team2 = seasonTable[row][4]
+                    if (self.team1 == 'wteam'):
+                        pass
+                    else:
+                        trendData = self.getTrend(season)
+                        winningID = predictDaWinna(trendData)
+                        if self.team1 == winningID:
+                            accuracy += 1
+                accuracy = int(accuracy / len(seasonTable) * 100)
+                print("Over-all Accuracy of Predictions: ", accuracy, "%")
+
+    def getAllTimeStats(self, tableOfGames, teams):
+        firstTeamGamesPlayed = 0
+        firstwins = 0
+        firstTeamRatio = 0
+        secondTeamGamesPlayed = 0
+        secondwins = 0
+        secondTeamRatio = 0
+        for i in range(len(teams)):
+            for row in range(len(tableOfGames)):
+                if tableOfGames[row][2] == teams[i] or tableOfGames[row][4] == teams[i]:
+                    if i == 0:
+                        firstTeamGamesPlayed += 1
+                        if tableOfGames[row][2] == teams[i]:
+                            firstwins += 1
+                    if i == 1:
+                        secondTeamGamesPlayed += 1
+                        if tableOfGames[row][2] == teams[i]:
+                            secondwins += 1
+        firstTeamRatio = int((firstwins / firstTeamGamesPlayed) * 100)
+        secondTeamRatio = int((secondwins / secondTeamGamesPlayed) * 100)
+        return firstTeamGamesPlayed, firstTeamRatio, secondTeamGamesPlayed, secondTeamRatio
+
     def collectInput(self, listOfTeams):
         notFinished = True
         season = ""
         while notFinished:
-            quit = input("Continue (c) or Quit(q)?")
-            if quit == 'q':
+            quit = input("press enter to continue making predictions or Type 'quit'")
+            if quit == 'quit':
                 notFinished = False
             else:
                 prompt = True
@@ -141,14 +204,25 @@ class MarMite:
                 prompt = True
                 teams = [self.team1, self.team2]
                 while prompt:
-                    season = input("Season(optional - choose from A-S): ")
+                    answer = input("Would you like to run against all history(all)? or enter a specific March Madness Season(season)")
+                    if answer != "season":
+                        season = "regular_season_results.csv"
+                    else:
+                        season = input("Select a Season between A and S): ")
                     prompt = self.checkSeason(teams, season, False)
 
                 predictionData = self.getTrend(season)
+                # correct the ratio for all of time. change [2]# games played and [3] ratio
+                if season == "regular_season_results.csv":
+                    seasonTable = self.loadcsv(season)
+                else:
+                    seasonTable = self.loadcsv("season " + season + " results.csv")
+                predictionData[0][2], predictionData[0][3], predictionData[1][2], predictionData[1][3] = self.getAllTimeStats(seasonTable, teams)
                 predictDaWinna(predictionData)
 
 
 def predictDaWinna(data):
+    daWinna = ""
     #current season ratio
     team1Ratio = data[0][3]
     team2Ratio = data[1][3]
@@ -156,28 +230,38 @@ def predictDaWinna(data):
     differenceInRatio = abs(team1Ratio - team2Ratio)
     if differenceInRatio > 5: #clear difference in performance of teams
         if team1Ratio > team2Ratio: # higher performance will most likely win
+            daWinna = data[0][0]
             print("Based off of our calculations... " + data[0][1] + " will most likely win.")
         else:
+            daWinna = data[1][0]
             print("Based off of our calculations... " + data[1][1] + " will most likely win.")
     else:
         team1Trend = data[0][4]
         team2Trend = data[0][4]
         if team1Trend < team2Trend:  # team 1 has improved more
             if differenceInGamesPlayed > 8:  #
+                daWinna = data[0][0]
                 print("Based off of our calculations... " + data[0][1] + " will most likely win.")
             else:
+                daWinna = data[1][0]
                 print("Based off of our calculations... " + data[1][1] + " will most likely win.")
         else:  #team 2 improved more...
             if differenceInGamesPlayed > 8:
+                daWinna = data[1][0]
                 print("Based off of our calculations... " + data[1][1] + " will most likely win.")
             else:
+                daWinna = data[0][0]
                 print("Based off of our calculations... " + data[0][1] + " will most likely win.")
+    return daWinna
 
 def main(): #TODO: get season from user, teams too.
     MarchMadHatter = MarMite()
     teams = MarchMadHatter.loadcsv("teams.csv")
-    MarchMadHatter.collectInput(teams)
-
+    ans = input("predict a game between two teams(predict), or find Tournament accuracy(enter)")
+    if ans == "predict":
+        MarchMadHatter.collectInput(teams)
+    else:
+        MarchMadHatter.tourneyPredictor(teams)
     # table = generateTable(Results)
     # npTable = np.array(table)
     # kmeans = KMeans(init='k-means++', n_clusters=4, n_init=10).fit(table)
