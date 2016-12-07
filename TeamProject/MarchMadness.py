@@ -146,7 +146,7 @@ class MarMite:
                         prompt = True
                 history = input("Would you like to base predictions on all history(h) or the selected seasons regular(r) season results:")
                 if history != 'r':
-                    season == "regular_season_results.csv"
+                    season = "regular_season_results.csv"
                 print("Running predictions...")
                 for row in range(len(seasonTable)):
                     self.team1 = seasonTable[row][2]
