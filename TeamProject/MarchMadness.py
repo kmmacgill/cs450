@@ -128,9 +128,10 @@ class MarMite:
     def tourneyPredictor(self, listOfTeams):
         notFinished = True
         seasonTable = []
-        accuracy = 0
+        season = ''
         while notFinished:
-            quit = input("press enter to continue making predictions or Type 'quit'")
+            accuracy = 0
+            quit = input("Press enter to continue making predictions or Type 'quit'")
             if quit == 'quit':
                 notFinished = False
             else:
@@ -183,7 +184,7 @@ class MarMite:
         notFinished = True
         season = ""
         while notFinished:
-            quit = input("press enter to continue making predictions or Type 'quit'")
+            quit = input("Press enter to continue making predictions or Type 'quit'")
             if quit == 'quit':
                 notFinished = False
             else:
@@ -257,7 +258,7 @@ def predictDaWinna(data):
 def main(): #TODO: get season from user, teams too.
     MarchMadHatter = MarMite()
     teams = MarchMadHatter.loadcsv("teams.csv")
-    ans = input("predict a game between two teams(predict), or find Tournament accuracy(enter)")
+    ans = input("To predict a games outcome between two teams enter (predict), or to find Tournament accuracy press(enter):")
     if ans == "predict":
         MarchMadHatter.collectInput(teams)
     else:
