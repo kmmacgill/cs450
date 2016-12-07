@@ -53,7 +53,7 @@ class MarMite:
 
     def getTrend(self, season):
         # build the table for the seasons
-        if season == "A":
+        if season == "A" or season == 'a':
             previousSeason = "A"
         elif season != "regular_season_results.csv":
             previousSeason = chr(ord(season) - 1)
