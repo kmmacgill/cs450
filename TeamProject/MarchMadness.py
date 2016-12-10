@@ -134,32 +134,65 @@ class MarMite:
             quit = input("Press enter to continue making predictions or Type 'quit'")
             if quit == 'quit':
                 notFinished = False
+
             else:
-                prompt = True
-                while prompt:
-                    season = input("Enter a Tournament Season (A-R): ")
-                    try:
+
+                allSeasons = input('Enter (A)ll if you want to run all seasons or press enter to enter a single season: ')
+                if allSeasons == 'a' or allSeasons == 'A':
+                    seasons = ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r']
+                    for letter in range(len(seasons)):
+                        season = seasons[letter]
+                        accuracy = 0
+                        average = 0
+                        averageAc = []
+
                         seasonTable = self.loadcsv("tourney " + season + " results.csv")
-                        prompt = False
-                    except:
-                        print("Invalid Season, please try Entering a value as directed")
-                        prompt = True
-                history = input("Would you like to base predictions on all history(h) or the selected seasons regular(r) season results:")
-                if history != 'r':
-                    season = "regular_season_results.csv"
-                print("Running predictions...")
-                for row in range(len(seasonTable)):
-                    self.team1 = seasonTable[row][2]
-                    self.team2 = seasonTable[row][4]
-                    if (self.team1 == 'wteam'):
-                        pass
-                    else:
-                        trendData = self.getTrend(season)
-                        winningID = predictDaWinna(trendData)
-                        if self.team1 == winningID:
-                            accuracy += 1
-                accuracy = int(accuracy / len(seasonTable) * 100)
-                print("Over-all Accuracy of Predictions: ", accuracy, "%")
+                        print("Running predictions for season " + season + "...")
+                        for row in range(len(seasonTable)):
+                            self.team1 = seasonTable[row][2]
+                            self.team2 = seasonTable[row][4]
+                            if (self.team1 == 'wteam'):
+                                pass
+                            else:
+                                trendData = self.getTrend(season)
+                                winningID = predictDaWinna(trendData)
+                                if self.team1 == winningID:
+                                    accuracy += 1
+                        accuracy = int(accuracy / len(seasonTable) * 100)
+                        print("Season Accuracy of Predictions: ", accuracy, "%")
+                        averageAc.append(accuracy)
+                    sumAc = sum(averageAc)
+                    average = sumAc/len(averageAc)
+                    print("Total accuracy:", average, "%")
+
+
+
+                else:
+                    prompt = True
+                    while prompt:
+                        season = input("Enter a Tournament Season (A-R): ")
+                        try:
+                            seasonTable = self.loadcsv("tourney " + season + " results.csv")
+                            prompt = False
+                        except:
+                            print("Invalid Season, please try Entering a value as directed")
+                            prompt = True
+                    history = input("Would you like to base predictions on all history(h) or the selected seasons regular(r) season results:")
+                    if history != 'r':
+                        season = "regular_season_results.csv"
+                    print("Running predictions...")
+                    for row in range(len(seasonTable)):
+                        self.team1 = seasonTable[row][2]
+                        self.team2 = seasonTable[row][4]
+                        if self.team1 == 'wteam':
+                            pass
+                        else:
+                            trendData = self.getTrend(season)
+                            winningID = predictDaWinna(trendData)
+                            if self.team1 == winningID:
+                                accuracy += 1
+                    accuracy = int(accuracy / len(seasonTable) * 100)
+                    print("Over-all Accuracy of Predictions: ", accuracy, "%")
 
     def getAllTimeStats(self, tableOfGames, teams):
         firstTeamGamesPlayed = 0
@@ -235,27 +268,27 @@ def predictDaWinna(data):
     if differenceInRatio > 5: #clear difference in performance of teams
         if team1Ratio > team2Ratio: # higher performance will most likely win
             daWinna = data[0][0]
-            print("Based off of our calculations... " + data[0][1] + " will most likely win.")
+            #print("Based off of our calculations... " + data[0][1] + " will most likely win.")
         else:
             daWinna = data[1][0]
-            print("Based off of our calculations... " + data[1][1] + " will most likely win.")
+            #print("Based off of our calculations... " + data[1][1] + " will most likely win.")
     else:
         team1Trend = data[0][4]
         team2Trend = data[0][4]
         if team1Trend < team2Trend:  # team 1 has improved more
             if differenceInGamesPlayed > 8:  #
                 daWinna = data[0][0]
-                print("Based off of our calculations... " + data[0][1] + " will most likely win.")
+                #print("Based off of our calculations... " + data[0][1] + " will most likely win.")
             else:
                 daWinna = data[1][0]
-                print("Based off of our calculations... " + data[1][1] + " will most likely win.")
+                #print("Based off of our calculations... " + data[1][1] + " will most likely win.")
         else:  #team 2 improved more...
             if differenceInGamesPlayed > 8:
                 daWinna = data[1][0]
-                print("Based off of our calculations... " + data[1][1] + " will most likely win.")
+                #print("Based off of our calculations... " + data[1][1] + " will most likely win.")
             else:
                 daWinna = data[0][0]
-                print("Based off of our calculations... " + data[0][1] + " will most likely win.")
+                #print("Based off of our calculations... " + data[0][1] + " will most likely win.")
     return daWinna
 
 def main(): #TODO: get season from user, teams too.
