@@ -139,11 +139,13 @@ class MarMite:
                 notDone = True
                 oldAverage = 0
                 trendGap = 0.2
-                oldGap = 0.2
+                oldGap = 1
                 oldAccuracy = 0
                 average = 0
+                allSeasons = input(
+                    'Enter (A)ll if you want to run all seasons or press enter to enter a single season: ')
+
                 while notDone:
-                    allSeasons = input('Enter (A)ll if you want to run all seasons or press enter to enter a single season: ')
                     if allSeasons == 'a' or allSeasons == 'A':
                         seasons = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R']
                         for letter in range(len(seasons)):
@@ -157,7 +159,7 @@ class MarMite:
                             for row in range(len(seasonTable)):
                                 self.team1 = seasonTable[row][2]
                                 self.team2 = seasonTable[row][4]
-                                if (self.team1 == 'wteam'):
+                                if self.team1 == 'wteam':
                                     pass
                                 else:
                                     trendData = self.getTrend(season)
@@ -170,13 +172,13 @@ class MarMite:
                         sumAc = sum(averageAc)
                         average = sumAc/len(averageAc)
                         print("Total accuracy:", average, "%")
-                        if oldAverage > average:
-                            notDone = False
-                            print("best trend gap: ", oldGap, " with accuracy of: ", oldAccuracy)
-                        else:
-                            oldAccuracy = average
-                            oldGap = trendGap
-                            trendGap += 0.2
+                    if oldAverage > average:
+                        notDone = False
+                        print("best trend gap: ", oldGap, " with accuracy of: ", oldAccuracy)
+                    else:
+                        oldAccuracy = average
+                        oldGap = trendGap
+                        trendGap += 1
 
 
 
