@@ -172,13 +172,14 @@ class MarMite:
                         sumAc = sum(averageAc)
                         average = sumAc/len(averageAc)
                         print("Total accuracy:", average, "%")
+                        print("The current gap is:", trendGap, "%")
                     if oldAverage > average:
                         notDone = False
                         print("best trend gap: ", oldGap, " with accuracy of: ", oldAccuracy)
                     else:
                         oldAccuracy = average
                         oldGap = trendGap
-                        trendGap += 1
+                        trendGap += .2
 
 
 
