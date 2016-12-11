@@ -142,12 +142,13 @@ class MarMite:
                 oldGap = 1
                 oldAccuracy = 0
                 average = 0
-                bestAverage = 0;
+                bestAverage = 0
                 allSeasons = input(
                     'Enter (A)ll if you want to run all seasons or press enter to enter a single season: ')
 
                 if allSeasons == 'a' or allSeasons == 'A':
                     seasons = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R']
+                    iterationNumber = 0
                     while notDone:
                         for letter in range(len(seasons)):
                             season = seasons[letter]
@@ -179,7 +180,10 @@ class MarMite:
                             bestAverage = average
                             print("best trend gap: ", oldGap, " with accuracy of: ", bestAverage)
                             oldAccuracy = average
-                            trendGap += 1.5
+                            trendGap += 0.5
+                        iterationNumber += 1
+                        if iterationNumber == 100:
+                            notDone = False
 
                 else:
                     prompt = True
