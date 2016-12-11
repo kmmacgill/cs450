@@ -145,9 +145,9 @@ class MarMite:
                 allSeasons = input(
                     'Enter (A)ll if you want to run all seasons or press enter to enter a single season: ')
 
-                while notDone:
-                    if allSeasons == 'a' or allSeasons == 'A':
-                        seasons = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R']
+                if allSeasons == 'a' or allSeasons == 'A':
+                    seasons = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R']
+                    while notDone:
                         for letter in range(len(seasons)):
                             season = seasons[letter]
                             accuracy = 0
@@ -173,16 +173,13 @@ class MarMite:
                         average = sumAc/len(averageAc)
                         print("Total accuracy:", average, "%")
                         print("The current gap is:", trendGap, "%")
-                    if oldAverage > average:
-                        notDone = False
-                        print("best trend gap: ", oldGap, " with accuracy of: ", oldAccuracy)
-                    else:
-                        oldAccuracy = average
-                        oldGap = trendGap
-                        trendGap += .2
-
-
-
+                        if oldAverage > average:
+                            notDone = False
+                            print("best trend gap: ", oldGap, " with accuracy of: ", oldAccuracy)
+                        else:
+                            oldAccuracy = average
+                            oldGap = trendGap
+                            trendGap += .2
 
                 else:
                     prompt = True
