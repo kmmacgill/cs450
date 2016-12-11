@@ -138,9 +138,9 @@ class MarMite:
             else:
                 notDone = True
                 oldAverage = 0
-                trendGap = 0.2
+                ratioGap = 1
                 oldGap = 1
-                oldAccuracy = 0
+                #oldAccuracy = 0
                 average = 0
                 bestAverage = 0
                 allSeasons = input(
@@ -157,7 +157,7 @@ class MarMite:
                             averageAc = []
 
                             seasonTable = self.loadcsv("tourney " + season + " results.csv")
-                            print("Running predictions for season " + season + "...")
+                            #print("Running predictions for season " + season + "...")
                             for row in range(len(seasonTable)):
                                 self.team1 = seasonTable[row][2]
                                 self.team2 = seasonTable[row][4]
@@ -165,22 +165,23 @@ class MarMite:
                                     pass
                                 else:
                                     trendData = self.getTrend(season)
-                                    winningID = predictDaWinna(trendData, trendGap) # change the trendgap to change each iteration.
+                                    winningID = predictDaWinna(trendData, ratioGap) # change the trendgap to change each iteration.
                                     if self.team1 == winningID:
                                         accuracy += 1
                             accuracy = int(accuracy / len(seasonTable) * 100)
-                            print("Season Accuracy of Predictions: ", accuracy, "%")
+                            #print("Season Accuracy of Predictions: ", accuracy, "%")
                             averageAc.append(accuracy)
                         sumAc = sum(averageAc)
                         average = sumAc/len(averageAc)
                         print("Total accuracy:", average, "%")
-                        print("The current gap is:", trendGap, "%")
+                        print("The current gap is:", ratioGap, "%")
                         if average > oldAverage:
-                            oldGap = trendGap
+                            oldGap = ratioGap
                             bestAverage = average
-                            print("best trend gap: ", oldGap, " with accuracy of: ", bestAverage)
-                            oldAccuracy = average
-                            trendGap += 0.5
+                            #print("best trend gap: ", oldGap, " with accuracy of: ", bestAverage)
+                            #oldAccuracy = average
+                            ratioGap += 1
+                        print("best trend gap: ", oldGap, " with accuracy of: ", bestAverage)
                         iterationNumber += 1
                         if iterationNumber == 100:
                             notDone = False
@@ -276,14 +277,14 @@ class MarMite:
                 predictDaWinna(predictionData)
 
 
-def predictDaWinna(data, trendGap = 12.0):
+def predictDaWinna(data, ratioGap = 12.0):
     daWinna = ""
     #current season ratio
     team1Ratio = data[0][3]
     team2Ratio = data[1][3]
     differenceInGamesPlayed = abs(data[0][2] - data[1][2])
     differenceInRatio = abs(team1Ratio - team2Ratio)
-    if differenceInRatio > trendGap: #clear difference in performance of teams
+    if differenceInRatio > ratioGap: # clear difference in performance of teams
         if team1Ratio > team2Ratio: # higher performance will most likely win
             daWinna = data[0][0]
             #print("Based off of our calculations... " + data[0][1] + " will most likely win.")
@@ -294,19 +295,9 @@ def predictDaWinna(data, trendGap = 12.0):
         team1Trend = data[0][4]
         team2Trend = data[0][4]
         if team1Trend < team2Trend:  # team 1 has improved more
-            if differenceInGamesPlayed > 8:  #
-                daWinna = data[0][0]
-                #print("Based off of our calculations... " + data[0][1] + " will most likely win.")
-            else:
-                daWinna = data[1][0]
-                #print("Based off of our calculations... " + data[1][1] + " will most likely win.")
-        else:  #team 2 improved more...
-            if differenceInGamesPlayed > 8:
-                daWinna = data[1][0]
-                #print("Based off of our calculations... " + data[1][1] + " will most likely win.")
-            else:
-                daWinna = data[0][0]
-                #print("Based off of our calculations... " + data[0][1] + " will most likely win.")
+            daWinna = data[0][0]
+        else:
+            daWinna = data[1][0]
     return daWinna
 
 def main(): #TODO: get season from user, teams too.
