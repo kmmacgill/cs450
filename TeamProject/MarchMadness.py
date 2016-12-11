@@ -142,6 +142,7 @@ class MarMite:
                 oldGap = 1
                 oldAccuracy = 0
                 average = 0
+                bestAverage = 0;
                 allSeasons = input(
                     'Enter (A)ll if you want to run all seasons or press enter to enter a single season: ')
 
@@ -173,13 +174,12 @@ class MarMite:
                         average = sumAc/len(averageAc)
                         print("Total accuracy:", average, "%")
                         print("The current gap is:", trendGap, "%")
-                        if oldAverage > average:
-                            notDone = False
-                            print("best trend gap: ", oldGap, " with accuracy of: ", oldAccuracy)
-                        else:
-                            oldAccuracy = average
+                        if average > oldAverage:
                             oldGap = trendGap
-                            trendGap += .2
+                            bestAverage = average
+                            print("best trend gap: ", oldGap, " with accuracy of: ", bestAverage)
+                            oldAccuracy = average
+                            trendGap += 1.5
 
                 else:
                     prompt = True
