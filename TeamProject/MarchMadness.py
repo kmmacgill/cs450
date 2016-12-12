@@ -167,7 +167,7 @@ class MarMite:
                                     if self.team1 == winningID:
                                         accuracy += 1
                             accuracy = int(accuracy / len(seasonTable) * 100)
-                            #print("Season Accuracy of Predictions: ", accuracy, "%")
+                            print("Season Accuracy of Predictions in season " + season + ": ", accuracy, "%")
                             averageAc.append(accuracy)
                         sumAc = sum(averageAc)
                         average = sumAc/len(averageAc)
@@ -178,7 +178,7 @@ class MarMite:
                             bestAverage = average
                         print("best trend gap: ", bestGap, " with accuracy of: ", bestAverage)
                         iterationNumber += 1
-                        ratioGap += 1
+                        ratioGap += 2
                         if iterationNumber == 100:
                             notDone = False
 
@@ -230,6 +230,7 @@ class MarMite:
         firstTeamRatio = int((firstwins / firstTeamGamesPlayed) * 100)
         secondTeamRatio = int((secondwins / secondTeamGamesPlayed) * 100)
         return firstTeamGamesPlayed, firstTeamRatio, secondTeamGamesPlayed, secondTeamRatio
+
 
     def collectInput(self, listOfTeams):
         notFinished = True
@@ -299,7 +300,7 @@ def predictDaWinna(data, ratioGap = 4.7):
     else:
         team1Trend = data[0][4]
         team2Trend = data[0][4]
-        if team1Trend < team2Trend:  # team 1 has improved more
+        if team1Trend < team2Trend:  # team 1 has an upward trend
             daWinna = data[0][0]
             print("Based off of our calculations... " + data[0][1] + " will most likely win.")
         else:
